@@ -91,15 +91,8 @@ tsmr.elf: \
 		lowlevel/uart.c.o \
 		lowlevel/uart_AX.c.o \
 		lowlevel/ax_12a.c.o \
-		lowlevel/eeprom.c.o \
-		lowlevel/encoders.c.o \
 		lowlevel/gpio.c.o \
-		lowlevel/motors.c.o \
 		fsm/fsm_master.c.o \
-		fsm/fsm_asser.c.o \
-		asservissement/calibration.c.o \
-		asservissement/odometry.c.o \
-		asservissement/pid.c.o \
 		main.c.o \
 		|
 	$(CC) $(CFlags) $^ $(LFlags) -o $@
@@ -111,13 +104,7 @@ tests.elf: \
 		lowlevel/can.c.o \
 		lowlevel/clock.c.o \
 		lowlevel/uart.c.o \
-		lowlevel/eeprom.c.o \
-		lowlevel/encoders.c.o \
 		lowlevel/gpio.c.o \
-		lowlevel/motors.c.o \
-		asservissement/calibration.c.o \
-		asservissement/odometry.c.o \
-		asservissement/pid.c.o \
 		main_tests.c.o \
 		|
 	$(CC) $(CFlags) $^ $(LFlags) -o $@
