@@ -1,0 +1,11 @@
+%clang
+%c -std=gnu11
+%cpp -std=gnu++14
+-pthread
+-Wall
+-Wextra
+
+# Includes
+-DSTM32F3
+-Ihal_common/libopencm3/include
+-I.
