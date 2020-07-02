@@ -3,7 +3,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 
-typedef enum { STEPPER_DOWN=0, STEPPER_UP=1 } T_STEPPER_DIR ;
+#include "clock.h"
 
 void gpio_setup()
 {
@@ -22,7 +22,8 @@ void gpio_setup()
   //stepper
   gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);//step
   gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);//dir
-  gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);//enable
+  gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO1);//track cuted
+  gpio_mode_setup(GPIOF, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO1);//enable
   disable_stepper();
   gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO6);//TOP
   gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO7);//DOWN
@@ -31,13 +32,19 @@ void gpio_setup()
   gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);//enable
 
 
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO1);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO2);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO3);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO4);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO5);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO0);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO15);
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO2);//S0
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO3);//S1
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO4);//S2
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO5);//S3
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO15);//color led
+
+  gpio_clear(GPIOA, GPIO2);
+  gpio_clear(GPIOA, GPIO3);
+  gpio_clear(GPIOA, GPIO4);
+  gpio_clear(GPIOA, GPIO5);
+  gpio_clear(GPIOA, GPIO15);
+
+  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO0);//color output
 
 
 
@@ -48,12 +55,12 @@ void gpio_setup()
 
 void disable_stepper()
 {
-  gpio_set(GPIOB, GPIO1);
+  gpio_set(GPIOF, GPIO1);
 }
 
 void enable_stepper()
 {
-  gpio_clear(GPIOB, GPIO1);
+  gpio_clear(GPIOF, GPIO1);
 }
 
 //get top end stop
@@ -147,4 +154,58 @@ void valve_test_loop()
     gpio_toggle(GPIOA, GPIO10);
     delay_ms(1000);
   }
+}
+
+
+uint32_t get_dt_color()
+{
+  while(!gpio_get(GPIOA, GPIO0))//wait for down
+  {
+    ;
+  }
+  uint32_t t0 = get_systicks();
+
+
+    while(gpio_get(GPIOA, GPIO0))//wait for up
+    {
+      ;
+    }
+    while(!gpio_get(GPIOA, GPIO0))//wait for down
+    {
+      ;
+    }
+
+  uint32_t t1 = get_systicks();
+
+  return t1-t0;
+}
+
+void color_test_loop()
+{
+  while(1)
+  {
+    gpio_clear(GPIOA, GPIO2);
+    gpio_set(GPIOA, GPIO3);
+
+    gpio_clear(GPIOA, GPIO4);
+    gpio_clear(GPIOA, GPIO5);
+    uint32_t dt_red = get_dt_color();
+
+    gpio_clear(GPIOA, GPIO4);
+    gpio_set(GPIOA, GPIO5);
+    uint32_t dt_blue = get_dt_color();
+
+    gpio_set(GPIOA, GPIO4);
+    gpio_set(GPIOA, GPIO5);
+    uint32_t dt_green = get_dt_color();
+
+    uart_send_string("\n\rred: ");
+    uart_send_int(dt_red);
+    uart_send_string("\n\rblue: ");
+    uart_send_int(dt_blue);
+    uart_send_string("\n\rgreen: ");
+    uart_send_int(dt_green);
+  }
+
+
 }

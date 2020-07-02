@@ -57,3 +57,4 @@ uint32_t get_systicks();
 uint32_t get_uptime_ms();
 
 void delay_ms(uint32_t ms);
+void delay_us(uint32_t us);

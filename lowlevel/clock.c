@@ -33,8 +33,8 @@ void delay_ms(uint32_t ms) {
   while(systicks < count_max) {}
 }
 
-void delay_us(uint32_t ms) {
-  uint32_t count_max = systicks + US_TO_SYSTICK(ms);
+void delay_us(uint32_t us) {
+  uint32_t count_max = systicks + US_TO_SYSTICK(us);
   while(systicks < count_max) {}
 }
 

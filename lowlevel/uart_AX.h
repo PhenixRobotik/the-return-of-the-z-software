@@ -18,4 +18,9 @@
 #define AX_AF_RX GPIO_AF7
 
 void ax_uart_setup();
-void ax_uart_send_string(char* chain); // NULL-ended string
+
+void ax_uart_set_left();
+void ax_uart_set_right();
+void ax_uart_set_center();
+
+void ax_uart_test_loop();
