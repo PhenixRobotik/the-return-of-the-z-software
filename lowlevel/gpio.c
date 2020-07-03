@@ -12,6 +12,12 @@ void gpio_setup()
   rcc_periph_clock_enable(RCC_GPIOB);
   rcc_periph_clock_enable(RCC_GPIOF);
 
+  //CAN
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO12);
+  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO11);
+  gpio_set(GPIOA, GPIO12);
+
+
   // status led
   gpio_mode_setup(GPIOF, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);//led pin
 
@@ -21,9 +27,10 @@ void gpio_setup()
 
   //stepper
   gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);//step
-  gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);//dir
+  gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO0);//track cuted
   gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO1);//track cuted
   gpio_mode_setup(GPIOF, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO1);//enable
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO15);//dir
   disable_stepper();
   gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO6);//TOP
   gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO7);//DOWN
@@ -36,7 +43,8 @@ void gpio_setup()
   gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO3);//S1
   gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO4);//S2
   gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO5);//S3
-  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO15);//color led
+  //track cuted
+  //gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE , GPIO15);//color led
 
   gpio_clear(GPIOA, GPIO2);
   gpio_clear(GPIOA, GPIO3);
@@ -78,9 +86,9 @@ int get_bottom_es()
 void set_stepper_dir(int dir)
 {
   if(dir == STEPPER_DOWN)
-    gpio_clear(GPIOB, GPIO0);
+    gpio_clear(GPIOA, GPIO15);
   else
-    gpio_set(GPIOB, GPIO0);
+    gpio_set(GPIOA, GPIO15);
 }
 
 void step_toggle()
@@ -112,6 +120,29 @@ void led_test_loop()
   {
     led_toggle_status();
     delay_ms(1000);
+  }
+}
+
+
+void reach_top()
+{
+  enable_stepper();
+  set_stepper_dir(STEPPER_UP);//go up
+  while(!get_top_es())
+  {
+    step_toggle();
+    delay_us(500);
+  }
+}
+
+void reach_down()
+{
+  enable_stepper();
+  set_stepper_dir(STEPPER_DOWN);//go down
+  while(!get_bottom_es())
+  {
+    step_toggle();
+    delay_us(500);
   }
 }
 

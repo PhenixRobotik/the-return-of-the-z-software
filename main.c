@@ -19,7 +19,7 @@ int main() {
 
   //init_Z();
 
-  led_test_loop();
+  //led_test_loop();
   //color_test_loop();
   //ax_uart_test_loop();
   //uart_test_loop();
@@ -30,6 +30,23 @@ int main() {
 
 
   while (1) {
+
+    reach_top();
+    ax_uart_set_left();
+    delay_ms(1000);
+    ax_uart_set_right();
+    delay_ms(2000);
+    ax_uart_set_center();
+    delay_ms(1000);
+
+    reach_down();
+    ax_uart_set_left();
+    delay_ms(1000);
+    ax_uart_set_right();
+    delay_ms(2000);
+    ax_uart_set_center();
+    delay_ms(1000);
+
     //led_toggle_status();
     //delay_ms(2000);
     //gpio_toggle(GPIOB, GPIO1);//nenable
