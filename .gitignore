@@ -12,3 +12,6 @@
 
 # Meson
 /_build
+
+*.h~
+*.c~

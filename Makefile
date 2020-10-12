@@ -86,7 +86,6 @@ all: tsmr.hex
 
 tsmr.elf: \
 		lowlevel/adc.c.o \
-		lowlevel/can.c.o \
 		lowlevel/clock.c.o \
 		lowlevel/uart.c.o \
 		lowlevel/uart_AX.c.o \
@@ -94,6 +93,7 @@ tsmr.elf: \
 		lowlevel/gpio.c.o \
 		fsm/fsm_master.c.o \
 		actions/actions.c.o \
+		can/can.c.o \
 		main.c.o \
 		|
 	$(CC) $(CFlags) $^ $(LFlags) -o $@

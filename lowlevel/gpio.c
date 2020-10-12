@@ -5,6 +5,12 @@
 
 #include "clock.h"
 
+// CAN
+#define GPIO_CAN_PORT   GPIOA
+#define GPIO_CAN_RX_PIN GPIO11
+#define GPIO_CAN_TX_PIN GPIO12
+#define GPIO_CAN_AF     GPIO_AF9
+
 void gpio_setup()
 {
   //start all the ports clocks
@@ -12,10 +18,14 @@ void gpio_setup()
   rcc_periph_clock_enable(RCC_GPIOB);
   rcc_periph_clock_enable(RCC_GPIOF);
 
-  //CAN
-  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO12);
-  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO11);
-  gpio_set(GPIOA, GPIO12);
+  // CAN RX
+  gpio_mode_setup(GPIO_CAN_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_CAN_RX_PIN);
+  gpio_set_af(GPIO_CAN_PORT, GPIO_CAN_AF, GPIO_CAN_RX_PIN);
+
+  // CAN TX
+  gpio_mode_setup(GPIO_CAN_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO_CAN_TX_PIN);
+  gpio_set_output_options(GPIO_CAN_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_CAN_TX_PIN);
+  gpio_set_af(GPIO_CAN_PORT, GPIO_CAN_AF, GPIO_CAN_TX_PIN);
 
 
   // status led
@@ -74,13 +84,13 @@ void enable_stepper()
 //get top end stop
 int get_top_es()
 {
-  return gpio_get(GPIOA, GPIO6);
+  return gpio_get(GPIOA, GPIO7);
 }
 
 //get bottom end stop
 int get_bottom_es()
 {
-  return gpio_get(GPIOA, GPIO7);
+  return gpio_get(GPIOA, GPIO6);
 }
 
 void set_stepper_dir(int dir)
@@ -185,6 +195,25 @@ void valve_test_loop()
     gpio_toggle(GPIOA, GPIO10);
     delay_ms(1000);
   }
+}
+
+void pv_test_loop()
+{
+  gpio_set(GPIOA, GPIO9);
+  while(1)
+  {
+    gpio_clear(GPIOA, GPIO10);
+    delay_ms(1000);
+    gpio_set(GPIOA, GPIO10);
+    int i;
+    for(i=0; i<5; i++)
+    {
+      uart_send_int(adc_read());
+      uart_send_string("\r\n");
+      delay_ms(1000);
+    }
+  }
+
 }
 
 

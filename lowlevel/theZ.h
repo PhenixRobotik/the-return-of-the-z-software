@@ -28,13 +28,9 @@ void pump_test_loop();
 
 void valve_test_loop();
 
-void color_test_loop();
+void pv_test_loop();
 
-/*****************************************************************************/
-void can_setup();
-// TODO !
-void* can_get_message();
-void can_send(void* msg);
+void color_test_loop();
 
 /*****************************************************************************/
 void adc_setup();
