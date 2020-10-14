@@ -94,6 +94,7 @@ tsmr.elf: \
 		fsm/fsm_master.c.o \
 		actions/actions.c.o \
 		can/can.c.o \
+		libcanard/libcanard/canard.c.o \
 		main.c.o \
 		|
 	$(CC) $(CFlags) $^ $(LFlags) -o $@
