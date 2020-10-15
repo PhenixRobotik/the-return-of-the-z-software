@@ -6,8 +6,6 @@
 
 #include "common_defs.h"
 
-#include "link_can.h"
-
 static void can_enable_irqs();
 
 int can_setup(void){

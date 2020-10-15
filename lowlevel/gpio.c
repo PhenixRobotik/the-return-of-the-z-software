@@ -178,6 +178,23 @@ void stepper_test_loop()
   }
 }
 
+void set_pump(uint8_t status)
+{
+  if(status)
+    gpio_set(GPIOA, GPIO9);
+  else
+    gpio_clear(GPIOA, GPIO9);
+}
+
+void set_valve(uint8_t status)
+{
+  if(status)
+    gpio_set(GPIOA, GPIO10);
+  else
+    gpio_clear(GPIOA, GPIO10);
+}
+
+
 
 void pump_test_loop()
 {
