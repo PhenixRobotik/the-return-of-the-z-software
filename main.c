@@ -3,6 +3,7 @@
 #include "lowlevel/uart.h"
 #include "lowlevel/uart_AX.h"
 #include "can/can.h"
+#include "can/can_defines.h"
 
 #include "actions/actions.h"
 
@@ -82,7 +83,7 @@ void can_rx_handler(uint8_t fifo, uint8_t pending, bool full, bool overrun)//mdr
     uart_send_string("nothing\n");
 
   }
-  /*
+
   uart_send_string("\n\ndelimiter\n");
   uart_send_int(id);
   uart_send_string(" ext:");
@@ -97,7 +98,7 @@ void can_rx_handler(uint8_t fifo, uint8_t pending, bool full, bool overrun)//mdr
     uart_send_string("-");
     uart_send_int(data[i]);
   }
-  */
+
 
   // Don't care
   (void)full;
@@ -128,11 +129,11 @@ void canard_test()
 {
   ins = canardInit(&memAllocate, &memFree);
   ins.mtu_bytes = CANARD_MTU_CAN_CLASSIC;  // Defaults to 64 (CAN FD); here we select Classic CAN.
-  ins.node_id   = 42;                      // Defaults to anonymous; can be set up later at any point.
+  ins.node_id   = CAN_ID_Z;
 
   (void) canardRxSubscribe(&ins,   // Subscribe to an arbitrary service response.
                          CanardTransferKindMessage,  // Specify that we want service responses, not requests.
-                         1230,    // The Service-ID whose responses we will receive.
+                         Z_IN,    // The Service-ID whose responses we will receive.
                          128,   // The extent (the maximum payload size); pick a huge value if not sure.
                          CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                          &my_service_subscription);
@@ -146,7 +147,7 @@ void canard_test()
         .timestamp_usec = 0,      // Zero if transmission deadline is not limited.
         .priority       = CanardPriorityNominal,
         .transfer_kind  = CanardTransferKindMessage,
-        .port_id        = 1233,                       // This is the subject-ID.
+        .port_id        = Z_OUT,                       // This is the subject-ID.
         .remote_node_id = CANARD_NODE_ID_UNSET,       // Messages cannot be unicast, so use UNSET.
         .transfer_id    = my_message_transfer_id,
         .payload_size   = 11,
