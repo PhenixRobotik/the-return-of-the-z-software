@@ -64,42 +64,6 @@ void can_rx_handler(uint8_t fifo, uint8_t pending, bool full, bool overrun)
 }
 
 
-
-void canard_test()
-{
-
-  while(1)
-  {
-    /*
-    const CanardTransfer transfer = {
-        .timestamp_usec = 0,      // Zero if transmission deadline is not limited.
-        .priority       = CanardPriorityNominal,
-        .transfer_kind  = CanardTransferKindMessage,
-        .port_id        = Z_OUT,                       // This is the subject-ID.
-        .remote_node_id = CANARD_NODE_ID_UNSET,       // Messages cannot be unicast, so use UNSET.
-        .transfer_id    = my_message_transfer_id,
-        .payload_size   = 11,
-        .payload        = "hello stm32",
-    };
-    ++my_message_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
-    int32_t result = canardTxPush(&ins, &transfer);
-
-    for (const CanardFrame* txf = NULL; (txf = canardTxPeek(&ins)) != NULL;)  // Look at the top of the TX queue.
-    {
-      // Please ensure TX deadline not expired.
-      // Send the frame. Redundant interfaces may be used here.
-
-      can_transmit(CAN1, txf->extended_can_id, 1, 0, txf->payload_size, txf->payload);
-                                   // If the driver is busy, break and retry later.
-      canardTxPop(&ins);                         // Remove the frame from the queue after it's transmitted.
-      ins.memory_free(&ins, (CanardFrame*)txf);  // Deallocate the dynamic memory afterwards.
-    }*/
-    led_toggle_status();
-    delay_ms(500);
-  }
-}
-
-
 int main() {
   clock_setup();
   gpio_setup();
@@ -129,6 +93,7 @@ int main() {
   while (1)
   {
     set_pump(data_g.pump_order);
+    (void) tx_feed_back( &data_g);
     //TODO send back status
     delay_ms(1000);
   }

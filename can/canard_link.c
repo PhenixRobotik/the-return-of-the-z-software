@@ -2,6 +2,11 @@
 #include "can_defines.h"
 
 #include <stdlib.h>
+#include <libopencm3/stm32/can.h>
+
+int z_out_transfer_id;
+int z_pump_transfer_id;
+
 
 static void* memAllocate(CanardInstance* const ins, const size_t amount)
 {
@@ -19,6 +24,9 @@ static void memFree(CanardInstance* const ins, void* const pointer)
 
 void init_can_link(global_data *pdata)
 {
+  z_out_transfer_id = 0;
+  z_pump_transfer_id = 0;
+
   pdata->pump_order = 0;
 
   pdata->can_ins = canardInit(&memAllocate, &memFree);
@@ -37,6 +45,22 @@ void init_can_link(global_data *pdata)
                          1,   // The extent (the maximum payload size); pick a huge value if not sure.
                          CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                          &pdata->z_pump_subscription);
+}
+
+int canard_send_tx_queue(CanardInstance *pins)
+{
+  for (const CanardFrame* txf = NULL; (txf = canardTxPeek(pins)) != NULL;)  // Look at the top of the TX queue.
+  {
+    // Please ensure TX deadline not expired.
+    // Send the frame. Redundant interfaces may be used here.
+
+    //trying to send, -1 is sending queue full
+    while(can_transmit(CAN1, txf->extended_can_id, 1, 0, txf->payload_size, txf->payload) == -1);
+                                 // If the driver is busy, break and retry later.
+    canardTxPop(pins);                         // Remove the frame from the queue after it's transmitted.
+    pins->memory_free(pins, (CanardFrame*)txf);  // Deallocate the dynamic memory afterwards.
+  }
+  return 1;
 }
 
 
@@ -86,5 +110,38 @@ int decode_can_rx(global_data *pdata, CanardTransfer *ptransfer)
       return 0;
     pdata->pump_order = ((uint8_t *)ptransfer->payload)[0];
   }
+  return 1;
+}
+
+
+int tx_feed_back(global_data *pdata)
+{
+  int32_t result;
+
+  uint8_t byte;
+
+  CanardTransfer transfer = {
+      .timestamp_usec = 0,      // Zero if transmission deadline is not limited.
+      .priority       = CanardPriorityNominal,
+      .transfer_kind  = CanardTransferKindMessage,
+      .remote_node_id = CANARD_NODE_ID_UNSET,       // Messages cannot be unicast, so use UNSET.
+  };
+
+  transfer.port_id        = Z_OUT;
+  transfer.transfer_id    = z_out_transfer_id;
+  transfer.payload_size   = 11;
+  transfer.payload        = "hello stm32";
+  ++z_out_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
+  result = canardTxPush(&pdata->can_ins, &transfer);
+  canard_send_tx_queue(&pdata->can_ins);
+
+  transfer.port_id        = Z_OUT;
+  transfer.transfer_id    = z_out_transfer_id;
+  transfer.payload_size   = 9;
+  transfer.payload        = "hello stm";
+  ++z_out_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
+  result = canardTxPush(&pdata->can_ins, &transfer);
+  canard_send_tx_queue(&pdata->can_ins);
+
   return 1;
 }
