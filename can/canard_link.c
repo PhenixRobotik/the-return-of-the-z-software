@@ -33,8 +33,8 @@ void init_can_link(global_data *pdata)
                          &pdata->z_in_subscription);
   (void) canardRxSubscribe(&pdata->can_ins,   // Subscribe to an arbitrary service response.
                          CanardTransferKindMessage,  // Specify that we want service responses, not requests.
-                         Z_PUMP_VALVE_SET,    // The Service-ID whose responses we will receive.
-                         128,   // The extent (the maximum payload size); pick a huge value if not sure.
+                         Z_PUMP_SET,    // The Service-ID whose responses we will receive.
+                         1,   // The extent (the maximum payload size); pick a huge value if not sure.
                          CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                          &pdata->z_pump_subscription);
 }
@@ -79,7 +79,7 @@ int decode_can_rx(global_data *pdata, CanardTransfer *ptransfer)
     }
     uart_send_string("\n");
   }
-  else if( ptransfer->port_id == Z_PUMP_VALVE_SET )
+  else if( ptransfer->port_id == Z_PUMP_SET )
   {
     //uart_send_string("pump\n");
     if(ptransfer->payload_size != 1)

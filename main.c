@@ -9,11 +9,13 @@
 
 #include <stdlib.h>
 #include "can/canard_link.h"
+#include "can/can_defines.h"
 
 #include <libopencm3/stm32/can.h>
 
-#define RX_CAN_ID 0x0000002B
-#define CAN_ID_MASK 0x000000FF
+//#define RX_CAN_ID 0x002E002B
+#define RX_CAN_ID ((CAN_ID_Z<<16) + CAN_ID_RPI)
+#define CAN_ID_MASK (0x000F00FF)
 
 static global_data data_g;
 
