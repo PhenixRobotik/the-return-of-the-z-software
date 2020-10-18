@@ -35,7 +35,7 @@ void init_can_link(global_data *pdata)
 
   (void) canardRxSubscribe(&pdata->can_ins,   // Subscribe to an arbitrary service response.
                          CanardTransferKindMessage,  // Specify that we want service responses, not requests.
-                         Z_IN,    // The Service-ID whose responses we will receive.
+                         Z_TEXT_SET,    // The Service-ID whose responses we will receive.
                          128,   // The extent (the maximum payload size); pick a huge value if not sure.
                          CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                          &pdata->z_in_subscription);
@@ -92,7 +92,7 @@ int process_can_rx(global_data *pdata, CanardFrame *preceived_frame)
 
 int decode_can_rx(global_data *pdata, CanardTransfer *ptransfer)
 {
-  if( ptransfer->port_id == Z_IN )
+  if( ptransfer->port_id == Z_TEXT_SET )
   {
     for(int i=0; i<ptransfer->payload_size; i++)
     {
@@ -127,21 +127,24 @@ int tx_feed_back(global_data *pdata)
       .remote_node_id = CANARD_NODE_ID_UNSET,       // Messages cannot be unicast, so use UNSET.
   };
 
-  transfer.port_id        = Z_OUT;
+  /*transfer.port_id        = Z_TEXT_GET;
   transfer.transfer_id    = z_out_transfer_id;
   transfer.payload_size   = 11;
   transfer.payload        = "hello stm32";
   ++z_out_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
   result = canardTxPush(&pdata->can_ins, &transfer);
-  canard_send_tx_queue(&pdata->can_ins);
+  canard_send_tx_queue(&pdata->can_ins);*/
 
-  transfer.port_id        = Z_OUT;
-  transfer.transfer_id    = z_out_transfer_id;
-  transfer.payload_size   = 9;
-  transfer.payload        = "hello stm";
-  ++z_out_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
+  byte = pdata->pump_order;
+  transfer.port_id        = Z_PUMP_GET;
+  transfer.transfer_id    = z_pump_transfer_id;
+  transfer.payload_size   = 1;
+  transfer.payload        = &byte;
+  ++z_pump_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
   result = canardTxPush(&pdata->can_ins, &transfer);
   canard_send_tx_queue(&pdata->can_ins);
+
+
 
   return 1;
 }
