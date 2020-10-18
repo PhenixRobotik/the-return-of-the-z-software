@@ -74,6 +74,7 @@ int main() {
   can_setup();
   init_can_link(&data_g);
 
+
   led_set_status(1);
 
 
@@ -90,12 +91,19 @@ int main() {
   //valve_test_loop();
   //pv_test_loop();
 
+
   while (1)
   {
     set_pump(data_g.pump_order);
+    set_valve(data_g.valve_order);
+    if(!data_g.flag_order_sent)
+    {
+      data_g.flag_order_sent = 1;
+      flag_set(data_g.flag_order);
+    }
+
     (void) tx_feed_back( &data_g);
-    //TODO send back status
-    delay_ms(1000);
+    delay_ms(500);
   }
 
   while (1) {

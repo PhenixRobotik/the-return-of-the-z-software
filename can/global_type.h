@@ -11,4 +11,11 @@ typedef struct{
   CanardRxSubscription z_pump_subscription;
   uint8_t pump_order;
 
+  CanardRxSubscription z_valve_subscription;
+  uint8_t valve_order;
+
+  CanardRxSubscription z_flag_subscription;
+  uint8_t flag_order;
+  uint8_t flag_order_sent;
+
 }global_data;

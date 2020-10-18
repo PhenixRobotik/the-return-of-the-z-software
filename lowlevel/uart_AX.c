@@ -3,6 +3,7 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/cm3/nvic.h>
 
 #include <lowlevel/ax_12a.h>
 #include <lowlevel/clock.h>
@@ -10,6 +11,8 @@
 //sorry for this
 static AX_Interface interface;
 static AX servo;
+static AX servo_flag;
+static AX servo_arm;
 
 
 //functions for the AX interface
@@ -22,13 +25,41 @@ static uint8_t send(uint8_t *buff, uint16_t len, uint32_t timeout)
   return 0;
 }
 
+static volatile uint8_t *rx_buff;
+static volatile uint8_t rx_size;
+static volatile uint8_t got_spamed;
+
+void usart2_exti26_isr(void)
+{
+  uint8_t data = usart_recv(AX_USART);
+  rx_buff[rx_size] = data;
+  if(rx_size<20)
+    rx_size += 1;
+  else
+  {
+    usart_disable_rx_interrupt(AX_USART);//we are spamed stop it now!
+    got_spamed = 1;
+  }
+  USART_CR1(USART2) &= ~USART_ISR_CTSIF;//clear the interrupt
+}
+
 static uint8_t receive(uint8_t *buff, uint16_t len, uint32_t timeout)
 {
-  //usart_set_rx_timeout_value(AX_USART, timeout);
-
-
-  //usart_get_flag(AX_USART, USART_ISR_RTOF);//true if timeout
-
+  rx_buff = buff;
+  rx_size = 0;
+  got_spamed = 0;
+  uint32_t t0 = get_systicks();
+  usart_enable_rx_interrupt(AX_USART);
+  delay_ms(timeout);
+  usart_disable_rx_interrupt(AX_USART);
+  if(got_spamed)
+  {
+    usart_disable(AX_USART);
+    usart_enable(AX_USART);
+    return 1;
+  }
+  if(rx_size != len)
+    return 1;
   return 0;
 }
 
@@ -72,7 +103,8 @@ void ax_uart_setup()
   usart_set_parity(AX_USART, USART_PARITY_NONE);
   usart_set_flow_control(AX_USART, USART_FLOWCONTROL_NONE);
 
-  //usart_enable_rx_timeout(AX_USART);
+  nvic_enable_irq(NVIC_USART2_EXTI26_IRQ);
+
   usart_enable(AX_USART);
 
 
@@ -82,8 +114,17 @@ void ax_uart_setup()
   interface.set_direction = set_direction;
   interface.delay = delay_ms;
 
-  servo.id = 0x01;
+  servo.id = 0x03;
   servo.interface = &interface;
+
+  servo_flag.id = 0x02;
+  servo_flag.interface = &interface;
+
+
+  servo_arm.id = 0x04;
+  servo_arm.interface = &interface;
+
+  //AX_Configure_ID(&servo_arm, 0x04);
 
 }
 
@@ -103,6 +144,23 @@ void ax_uart_set_center()
   AX_Set_Goal_Position(&servo, 512, AX_NOW);
 }
 
+void flag_out()
+{
+  AX_Set_Goal_Position(&servo_flag, 200, AX_NOW);
+}
+
+void flag_in()
+{
+  AX_Set_Goal_Position(&servo_flag, 511, AX_NOW);
+}
+
+void flag_set(uint8_t status)
+{
+  if(status)
+    flag_out();
+  else
+    flag_in();
+}
 
 void ax_uart_test_loop()
 {
@@ -110,18 +168,40 @@ void ax_uart_test_loop()
   //gpio_set(GPIOB, GPIO5);
 
   //Range : [0x00, 0x3FF] (0°, 300°);
-  //AX_Configure_Angle_Limit(&servo, 200, 800);
+  //AX_Configure_Angle_Limit(&servo_arm, 0, 0x3FF);
 
+
+  AX_Set_LED( &servo_arm, 1, AX_NOW);
+  AX_Set_Goal_Speed_Join(&servo, 100, AX_NOW);
+  AX_Set_Goal_Position(&servo_arm, 511, AX_NOW);
+
+
+  AX_Set_LED( &servo_flag, 1, AX_NOW);
   AX_Set_Goal_Speed_Join(&servo, 300, AX_NOW);
+
+  uint16_t position;
   while(1)
   {
+    flag_out();
     AX_Set_LED( &servo, 1, AX_NOW);
     ax_uart_set_left();
     delay_ms(2000);
+    AX_Get_Current_Position(&servo, &position);
+    uart_send_string("main\n");
+    uart_send_int(position);
+
+    flag_in();
     ax_uart_set_right();
     AX_Set_LED( &servo, 0, AX_NOW);
     delay_ms(2000);
+    AX_Get_Current_Position(&servo, &position);
+    uart_send_string("main\n");
+    uart_send_int(position);
+
     ax_uart_set_center();
     delay_ms(2000);
+    AX_Get_Current_Position(&servo, &position);
+    uart_send_string("main\n");
+    uart_send_int(position);
   }
 }

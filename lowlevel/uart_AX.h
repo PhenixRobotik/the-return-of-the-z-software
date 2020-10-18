@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 
 // DEFINES FOR AX
 #define AX_RCC_USART RCC_USART2
@@ -22,5 +23,9 @@ void ax_uart_setup();
 void ax_uart_set_left();
 void ax_uart_set_right();
 void ax_uart_set_center();
+
+void flag_out();
+void flag_in();
+void flag_set(uint8_t status);
 
 void ax_uart_test_loop();

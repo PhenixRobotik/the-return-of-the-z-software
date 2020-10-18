@@ -6,6 +6,8 @@
 
 int z_out_transfer_id;
 int z_pump_transfer_id;
+int z_valve_transfer_id;
+int z_flag_transfer_id;
 
 
 static void* memAllocate(CanardInstance* const ins, const size_t amount)
@@ -26,8 +28,13 @@ void init_can_link(global_data *pdata)
 {
   z_out_transfer_id = 0;
   z_pump_transfer_id = 0;
+  z_valve_transfer_id = 0;
+  z_flag_transfer_id = 0;
 
   pdata->pump_order = 0;
+  pdata->valve_order = 0;
+  pdata->flag_order = 0;
+  pdata->flag_order_sent = 0;
 
   pdata->can_ins = canardInit(&memAllocate, &memFree);
   pdata->can_ins.mtu_bytes = CANARD_MTU_CAN_CLASSIC;  // Defaults to 64 (CAN FD); here we select Classic CAN.
@@ -45,6 +52,18 @@ void init_can_link(global_data *pdata)
                          1,   // The extent (the maximum payload size); pick a huge value if not sure.
                          CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                          &pdata->z_pump_subscription);
+  (void) canardRxSubscribe(&pdata->can_ins,   // Subscribe to an arbitrary service response.
+                         CanardTransferKindMessage,  // Specify that we want service responses, not requests.
+                         Z_VALVE_SET,    // The Service-ID whose responses we will receive.
+                         1,   // The extent (the maximum payload size); pick a huge value if not sure.
+                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                         &pdata->z_valve_subscription);
+  (void) canardRxSubscribe(&pdata->can_ins,   // Subscribe to an arbitrary service response.
+                         CanardTransferKindMessage,  // Specify that we want service responses, not requests.
+                         FLAGGY_SET,    // The Service-ID whose responses we will receive.
+                         1,   // The extent (the maximum payload size); pick a huge value if not sure.
+                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                         &pdata->z_flag_subscription);
 }
 
 int canard_send_tx_queue(CanardInstance *pins)
@@ -110,6 +129,20 @@ int decode_can_rx(global_data *pdata, CanardTransfer *ptransfer)
       return 0;
     pdata->pump_order = ((uint8_t *)ptransfer->payload)[0];
   }
+  else if( ptransfer->port_id == Z_VALVE_SET )
+  {
+    //uart_send_string("pump\n");
+    if(ptransfer->payload_size != 1)
+      return 0;
+    pdata->valve_order = ((uint8_t *)ptransfer->payload)[0];
+  }
+  else if( ptransfer->port_id == FLAGGY_SET )
+  {
+    if(ptransfer->payload_size != 1)
+      return 0;
+    pdata->flag_order = ((uint8_t *)ptransfer->payload)[0];
+    pdata->flag_order_sent = 0;
+  }
   return 1;
 }
 
@@ -141,6 +174,16 @@ int tx_feed_back(global_data *pdata)
   transfer.payload_size   = 1;
   transfer.payload        = &byte;
   ++z_pump_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
+  result = canardTxPush(&pdata->can_ins, &transfer);
+  canard_send_tx_queue(&pdata->can_ins);
+
+
+  byte = pdata->valve_order;
+  transfer.port_id        = Z_VALVE_GET;
+  transfer.transfer_id    = z_valve_transfer_id;
+  transfer.payload_size   = 1;
+  transfer.payload        = &byte;
+  ++z_valve_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
   result = canardTxPush(&pdata->can_ins, &transfer);
   canard_send_tx_queue(&pdata->can_ins);
 
