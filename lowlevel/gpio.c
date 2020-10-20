@@ -143,7 +143,12 @@ void stepper_set(int32_t goal)
 
 int32_t stepper_get()
 {
-  return pos_;
+  int32_t ret = pos_;
+  if(get_top_es())
+    ret = ret | 0x80000000;
+  if(get_bottom_es())
+    ret = ret | 0x40000000;
+  return ret;
 }
 
 void timX_isr(void)
