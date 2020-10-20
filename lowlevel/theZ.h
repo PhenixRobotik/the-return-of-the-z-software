@@ -3,6 +3,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// POOLING Timer
+#define STEPPER_TIM TIM15
+// magic trick of timer 15 normaly timX_isr
+#define timX_isr(void) tim1_brk_tim15_isr(void)
+#define STEPPER_RCC_TIM RCC_TIM15
+// normaly NVIC_TIMx_IRQ
+#define STEPPER_NVIC_TIM_IRQ NVIC_TIM1_BRK_TIM15_IRQ
+#define STEPPER_RST_TIM RST_TIM15
+// change these 2 lines to setup interruption frequency
+// #define ODOM_TIM_PRESCALER ((rcc_apb1_frequency * 2) / 5000)
+#define STEPPER_TIM_PRESCALER 50
+#define STEPPER_TIM_PERIOD 600
+
 // This API should be splitted to specific headers
 
 /*****************************************************************************/
@@ -24,6 +37,9 @@ int get_bottom_es();//get bottom end stop
 
 void set_stepper_dir(int dir);
 void step_toggle();
+
+void stepper_set(int32_t goal);
+int32_t stepper_get();
 
 
 void set_pump(uint8_t status);

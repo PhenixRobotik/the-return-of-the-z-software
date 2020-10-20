@@ -123,9 +123,17 @@ int main() {
     }
     data_g.angle_status = angle_get();
 
+    //z axis block
+    if(!data_g.pos_order_sent)
+    {
+      data_g.pos_order_sent = 1;
+      stepper_set(data_g.pos_order);
+    }
+    data_g.z_pos = stepper_get();
 
     //color sensor
     get_color(&data_g.dt_red, &data_g.dt_blue, &data_g.dt_green);
+
 
     (void) tx_feed_back( &data_g);
     led_toggle_status();
