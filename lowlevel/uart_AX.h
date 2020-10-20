@@ -27,5 +27,12 @@ void ax_uart_set_center();
 void flag_out();
 void flag_in();
 void flag_set(uint8_t status);
+uint8_t flag_get();
+
+void arm_set(uint16_t value);
+uint16_t arm_get();
+
+void angle_set(uint16_t value);
+uint16_t angle_get();
 
 void ax_uart_test_loop();

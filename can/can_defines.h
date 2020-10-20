@@ -24,6 +24,8 @@ enum MessageType {
   FLAGGY_SET  = (CAN_ID_Z << 8) +  12,
   ARM_GET     = (CAN_ID_Z << 8) +  13,
   ARM_SET     = (CAN_ID_Z << 8) +  14,
+  Z_PRESS_GET = (CAN_ID_Z << 8) +  15,
+  Z_PRESS_SET = (CAN_ID_Z << 8) +  16,
 
   Z_VERSION   = (CAN_ID_Z << 8) + 255,
 };

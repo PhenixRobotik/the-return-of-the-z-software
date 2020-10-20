@@ -27,13 +27,14 @@ static uint8_t send(uint8_t *buff, uint16_t len, uint32_t timeout)
 
 static volatile uint8_t *rx_buff;
 static volatile uint8_t rx_size;
+static volatile uint8_t rx_size_max;
 static volatile uint8_t got_spamed;
 
 void usart2_exti26_isr(void)
 {
   uint8_t data = usart_recv(AX_USART);
   rx_buff[rx_size] = data;
-  if(rx_size<20)
+  if(rx_size<rx_size_max)
     rx_size += 1;
   else
   {
@@ -47,6 +48,7 @@ static uint8_t receive(uint8_t *buff, uint16_t len, uint32_t timeout)
 {
   rx_buff = buff;
   rx_size = 0;
+  rx_size_max = len;
   got_spamed = 0;
   uint32_t t0 = get_systicks();
   usart_enable_rx_interrupt(AX_USART);
@@ -125,6 +127,7 @@ void ax_uart_setup()
   servo_arm.interface = &interface;
 
   //AX_Configure_ID(&servo_arm, 0x04);
+  //AX_Configure_Angle_Limit(&servo, 0, 0x3FF);
 
 }
 
@@ -144,6 +147,9 @@ void ax_uart_set_center()
   AX_Set_Goal_Position(&servo, 512, AX_NOW);
 }
 
+
+
+
 void flag_out()
 {
   AX_Set_Goal_Position(&servo_flag, 200, AX_NOW);
@@ -162,13 +168,62 @@ void flag_set(uint8_t status)
     flag_in();
 }
 
+uint8_t flag_get()
+{
+  uint16_t position;
+  if(AX_Get_Current_Position(&servo_flag, &position) == 1)
+    return 0;
+  if(position<300)
+    return 1;
+  return 0;
+}
+
+
+
+void arm_set(uint16_t value)
+{
+  if(value > 800)
+    value = 800;
+  if(value < 325)
+    value = 325;
+  AX_Set_Goal_Position(&servo_arm, value, AX_NOW);
+}
+
+uint16_t arm_get()
+{
+  uint16_t position;
+  if(AX_Get_Current_Position(&servo_arm, &position) == 1)
+    return 1024;
+  return position;
+}
+
+
+void angle_set(uint16_t value)
+{
+  if(value > 840)
+    value = 840;
+  if(value < 180)
+    value = 180;
+  AX_Set_Goal_Position(&servo, value, AX_NOW);
+}
+
+uint16_t angle_get()
+{
+  uint16_t position;
+  if(AX_Get_Current_Position(&servo, &position) == 1)
+    return 1024;
+  return position;
+}
+
+
+
 void ax_uart_test_loop()
 {
 
   //gpio_set(GPIOB, GPIO5);
 
   //Range : [0x00, 0x3FF] (0°, 300°);
-  //AX_Configure_Angle_Limit(&servo_arm, 0, 0x3FF);
+  //AX_Configure_Angle_Limit(&servo, 0, 0x3FF);
 
 
   AX_Set_LED( &servo_arm, 1, AX_NOW);

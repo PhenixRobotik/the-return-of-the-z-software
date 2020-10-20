@@ -94,13 +94,35 @@ int main() {
 
   while (1)
   {
+    //pump block
     set_pump(data_g.pump_order);
     set_valve(data_g.valve_order);
+    data_g.adc_value = adc_read();
+
+    //flag block
     if(!data_g.flag_order_sent)
     {
       data_g.flag_order_sent = 1;
       flag_set(data_g.flag_order);
     }
+    data_g.flag_status = flag_get();
+
+    //arm block
+    if(!data_g.arm_order_sent)
+    {
+      data_g.arm_order_sent = 1;
+      arm_set(data_g.arm_order);
+    }
+    data_g.arm_status = arm_get();
+
+    //angle block
+    if(!data_g.angle_order_sent)
+    {
+      data_g.angle_order_sent = 1;
+      angle_set(data_g.angle_order);
+    }
+    data_g.angle_status = angle_get();
+
 
     (void) tx_feed_back( &data_g);
     delay_ms(500);
