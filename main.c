@@ -137,7 +137,7 @@ int main() {
 
     (void) tx_feed_back( &data_g);
     led_toggle_status();
-    delay_ms(500);
+    delay_ms(250);
   }
 
   return 0;

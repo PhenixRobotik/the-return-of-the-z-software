@@ -73,7 +73,7 @@ LFlags += -T $(LINKER_SCRIPTS_DIR)/stm32f303.ld
 
 CFlags += -I.
 
-all: tsmr.hex
+all: z.hex
 
 %.cpp.o: %.cpp Makefile
 	@$(CXX) $(CFlags) $(CXXFlags) $< -o $@ -c
@@ -84,7 +84,7 @@ all: tsmr.hex
 	@echo CC $<
 
 
-tsmr.elf: \
+z.elf: \
 		lowlevel/adc.c.o \
 		lowlevel/clock.c.o \
 		lowlevel/uart.c.o \

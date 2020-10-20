@@ -14,7 +14,7 @@
 // change these 2 lines to setup interruption frequency
 // #define ODOM_TIM_PRESCALER ((rcc_apb1_frequency * 2) / 5000)
 #define STEPPER_TIM_PRESCALER 50
-#define STEPPER_TIM_PERIOD 600
+#define STEPPER_TIM_PERIOD 150
 
 // This API should be splitted to specific headers
 
