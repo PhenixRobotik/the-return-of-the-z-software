@@ -26,6 +26,8 @@ enum MessageType {
   ARM_SET     = (CAN_ID_Z << 8) +  14,
   Z_PRESS_GET = (CAN_ID_Z << 8) +  15,
   Z_PRESS_SET = (CAN_ID_Z << 8) +  16,
+  Z_COLOR_GET = (CAN_ID_Z << 8) +  17,
+  Z_COLOR_SET = (CAN_ID_Z << 8) +  18,
 
   Z_VERSION   = (CAN_ID_Z << 8) + 255,
 };

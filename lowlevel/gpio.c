@@ -243,19 +243,38 @@ uint32_t get_dt_color()
   uint32_t t0 = get_systicks();
 
 
-    while(gpio_get(GPIOA, GPIO0))//wait for up
-    {
-      ;
-    }
-    while(!gpio_get(GPIOA, GPIO0))//wait for down
-    {
-      ;
-    }
+  while(gpio_get(GPIOA, GPIO0) && (get_systicks()-t0) < 500)//wait for up
+  {
+    ;
+  }
+  while(!gpio_get(GPIOA, GPIO0) && (get_systicks()-t0) < 500)//wait for down
+  {
+    ;
+  }
 
   uint32_t t1 = get_systicks();
 
   return t1-t0;
 }
+
+void get_color(uint8_t *dt_red, uint8_t *dt_blue, uint8_t *dt_green)
+{
+  gpio_clear(GPIOA, GPIO2);
+  gpio_set(GPIOA, GPIO3);
+
+  gpio_clear(GPIOA, GPIO4);
+  gpio_clear(GPIOA, GPIO5);
+  *dt_red = get_dt_color();
+
+  gpio_clear(GPIOA, GPIO4);
+  gpio_set(GPIOA, GPIO5);
+  *dt_blue = get_dt_color();
+
+  gpio_set(GPIOA, GPIO4);
+  gpio_set(GPIOA, GPIO5);
+  *dt_green = get_dt_color();
+}
+
 
 void color_test_loop()
 {

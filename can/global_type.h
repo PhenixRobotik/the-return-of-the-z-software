@@ -31,4 +31,8 @@ typedef struct{
   uint8_t angle_order_sent;
   uint16_t angle_status;
 
+  uint8_t dt_red;
+  uint8_t dt_blue;
+  uint8_t dt_green;
+
 }global_data;

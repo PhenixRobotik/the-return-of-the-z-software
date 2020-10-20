@@ -11,6 +11,7 @@ int z_flag_transfer_id;
 int z_adc_transfer_id;
 int z_arm_transfer_id;
 int z_angle_transfer_id;
+int z_color_transfer_id;
 
 
 static void* memAllocate(CanardInstance* const ins, const size_t amount)
@@ -36,6 +37,7 @@ void init_can_link(global_data *pdata)
   z_adc_transfer_id = 0;
   z_arm_transfer_id = 0;
   z_angle_transfer_id = 0;
+  z_color_transfer_id = 0;
 
   pdata->pump_order = 0;
   pdata->valve_order = 0;
@@ -258,6 +260,14 @@ int tx_feed_back(global_data *pdata)
   transfer.payload_size   = 2;
   transfer.payload        = &(pdata->angle_status);
   ++z_angle_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
+  result = canardTxPush(&pdata->can_ins, &transfer);
+  canard_send_tx_queue(&pdata->can_ins);
+
+  transfer.port_id        = Z_COLOR_GET;
+  transfer.transfer_id    = z_color_transfer_id;
+  transfer.payload_size   = 3;
+  transfer.payload        = &(pdata->dt_red);//works by convention
+  ++z_color_transfer_id;  // The transfer-ID shall be incremented after every transmission on this subject.
   result = canardTxPush(&pdata->can_ins, &transfer);
   canard_send_tx_queue(&pdata->can_ins);
 

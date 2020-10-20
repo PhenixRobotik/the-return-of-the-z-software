@@ -29,7 +29,7 @@ void step_toggle();
 void set_pump(uint8_t status);
 void set_valve(uint8_t status);
 
-
+void get_color(uint8_t *dt_red, uint8_t *dt_blue, uint8_t *dt_green);
 
 void stepper_test_loop();
 
