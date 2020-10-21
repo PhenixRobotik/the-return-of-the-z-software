@@ -33,9 +33,11 @@ static volatile uint8_t got_spamed;
 void usart2_exti26_isr(void)
 {
   uint8_t data = usart_recv(AX_USART);
-  rx_buff[rx_size] = data;
   if(rx_size<rx_size_max)
+  {
+    rx_buff[rx_size] = data;
     rx_size += 1;
+  }
   else
   {
     usart_disable_rx_interrupt(AX_USART);//we are spamed stop it now!
