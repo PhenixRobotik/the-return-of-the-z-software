@@ -40,11 +40,17 @@ void can_rx_handler(uint8_t fifo, uint8_t pending, bool full, bool overrun)
 	      data,
 	      &timestamp);
 
+  //only if your hardware filter doesn't work
+  /*
   if((id & CAN_ID_MASK) != RX_CAN_ID)
   {
-    // All you had to do was filtering the damn trame, ST !
     return;
   }
+  */
+
+  //uart_send_int(id);
+  //uart_send_string("\n");
+
 
   CanardFrame received_frame;
   received_frame.timestamp_usec = 0;

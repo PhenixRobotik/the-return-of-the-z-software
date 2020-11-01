@@ -5,6 +5,7 @@
 #include <libopencm3/stm32/can.h>
 
 #include "common_defs.h"
+#include "can_defines.h"
 
 static void can_enable_irqs();
 
@@ -57,8 +58,8 @@ int can_setup(void){
   /* CAN filter 0 init */
   can_filter_id_mask_32bit_init(
     0,     /* Filter ID */
-    0,     /* CAN ID */
-    0,     /* CAN ID mask */
+    (CAN_ID_Z<<19) | (CAN_ID_RPI << 3),     /* CAN ID */
+    (0x0F<<19) | (0xFF<<3),     /* CAN ID mask */
     0,     /* FIFO assignment (here: FIFO0) */
     true); /* Enable the filter. */
 
