@@ -8,6 +8,8 @@
 #include <lowlevel/ax_12a.h>
 #include <lowlevel/clock.h>
 
+#include "uart.h"
+
 //sorry for this
 static AX_Interface interface;
 static AX servo;
@@ -18,6 +20,7 @@ static AX servo_arm;
 //functions for the AX interface
 static uint8_t send(uint8_t *buff, uint16_t len, uint32_t timeout)
 {
+  (void)timeout;
   for (int i = 0; i<len; i++)
   {
     usart_send_blocking(AX_USART, buff[i]);
@@ -52,7 +55,7 @@ static uint8_t receive(uint8_t *buff, uint16_t len, uint32_t timeout)
   rx_size = 0;
   rx_size_max = len;
   got_spamed = 0;
-  uint32_t t0 = get_systicks();
+  //uint32_t t0 = get_systicks();
   usart_enable_rx_interrupt(AX_USART);
   delay_ms(timeout);
   usart_disable_rx_interrupt(AX_USART);

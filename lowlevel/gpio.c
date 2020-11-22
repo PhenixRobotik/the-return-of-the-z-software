@@ -6,17 +6,13 @@
 #include <libopencm3/cm3/nvic.h>
 
 #include "clock.h"
+#include "uart.h"
 
 // CAN
 #define GPIO_CAN_PORT   GPIOA
 #define GPIO_CAN_RX_PIN GPIO11
 #define GPIO_CAN_TX_PIN GPIO12
 #define GPIO_CAN_AF     GPIO_AF9
-
-static volatile int32_t goal_;
-static volatile int32_t pos_;
-static volatile int32_t goal_masked_;
-static volatile int32_t goal_filtered_;
 
 void gpio_setup()
 {
@@ -71,20 +67,6 @@ void gpio_setup()
 
   gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE , GPIO0);//color output
 
-
-  //setup the pooling timer
-	rcc_periph_clock_enable(STEPPER_RCC_TIM);
-	rcc_periph_reset_pulse(STEPPER_RST_TIM);
-	timer_set_mode(STEPPER_TIM, TIM_CR1_CKD_CK_INT,TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
-	timer_set_prescaler(STEPPER_TIM, STEPPER_TIM_PRESCALER);
-	timer_disable_preload(STEPPER_TIM);
-	timer_continuous_mode(STEPPER_TIM);
-	timer_set_period(STEPPER_TIM, STEPPER_TIM_PERIOD);
-	timer_set_oc_value(STEPPER_TIM, TIM_OC1,0);//compare to zero
-	timer_enable_counter(STEPPER_TIM);
-  nvic_enable_irq(STEPPER_NVIC_TIM_IRQ);
-
-  pos_ = 0;
 }
 
 void disable_stepper()
@@ -119,111 +101,7 @@ void set_stepper_dir(int dir)
 
 void step_toggle()
 {
-  gpio_toggle(GPIOA, GPIO8);//led
-}
-
-void stepper_set(int32_t goal)
-{
-  goal_ = goal;
-  goal_masked_ = goal_ & 0xC0000000;
-  goal_filtered_ = goal_ & 0x3FFFFFFF;
-
-  if(goal_masked_ == 0xC0000000)
-  {
-    timer_disable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-    disable_stepper();
-  }
-  else
-  {
-    enable_stepper();
-    timer_enable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-  }
-
-}
-
-int32_t stepper_get()
-{
-  int32_t ret = pos_;
-  if(get_top_es())
-    ret = ret | 0x80000000;
-  if(get_bottom_es())
-    ret = ret | 0x40000000;
-  return ret;
-}
-
-void timX_isr(void)
-{
-  if (timer_get_flag(STEPPER_TIM, TIM_SR_CC1IF))
-  {
-    // Clear compare interrupt flag.
-    timer_clear_flag(STEPPER_TIM, TIM_SR_CC1IF);
-
-    if(goal_masked_ == 0x80000000)//reach top
-    {
-      if(!get_top_es())
-      {
-        pos_++;
-        set_stepper_dir(STEPPER_UP);
-        step_toggle();
-      }
-      else
-      {
-        timer_disable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-      }
-    }
-
-    else if(goal_masked_ == 0x40000000)//rech bottom and init pos
-    {
-      if(!get_bottom_es())
-      {
-        pos_--;
-        set_stepper_dir(STEPPER_DOWN);
-        step_toggle();
-      }
-      else
-      {
-        pos_ = 0;
-        timer_disable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-      }
-    }
-
-    else//go where we need
-    {
-      if(goal_filtered_ < pos_)//we need to down
-      {
-        if(!get_bottom_es())//check end stop
-        {
-          pos_--;
-          set_stepper_dir(STEPPER_DOWN);
-          step_toggle();
-        }
-        else
-        {
-          pos_ = 0;
-          timer_disable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-        }
-      }
-      else if(goal_filtered_ > pos_)//we need to go up
-      {
-        if(!get_top_es())//check end stop
-        {
-          pos_++;
-          set_stepper_dir(STEPPER_UP);
-          step_toggle();
-        }
-        else
-        {
-          timer_disable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-        }
-      }
-      else
-      {
-        timer_disable_irq(STEPPER_TIM, TIM_DIER_CC1IE);
-      }
-    }
-
-
-  }
+  gpio_toggle(GPIOA, GPIO8);
 }
 
 

@@ -1,4 +1,5 @@
 #include "lowlevel/theZ.h"
+#include "lowlevel/stepper.h"
 #include "lowlevel/clock.h"
 #include "lowlevel/uart.h"
 #include "lowlevel/uart_AX.h"
@@ -67,12 +68,16 @@ void can_rx_handler(uint8_t fifo, uint8_t pending, bool full, bool overrun)
   (void)rtr;
   (void)fmi;
   (void)timestamp;
+  (void)result;
+  (void)pending;
+  (void)fifo;
 }
 
 
 int main() {
   clock_setup();
   gpio_setup();
+  setup_stepper_interrupt();
   adc_setup();
   uart_setup();
   ax_uart_setup();

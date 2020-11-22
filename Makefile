@@ -91,6 +91,7 @@ z.elf: \
 		lowlevel/uart_AX.c.o \
 		lowlevel/ax_12a.c.o \
 		lowlevel/gpio.c.o \
+		lowlevel/stepper.c.o \
 		fsm/fsm_master.c.o \
 		actions/actions.c.o \
 		can/can.c.o \

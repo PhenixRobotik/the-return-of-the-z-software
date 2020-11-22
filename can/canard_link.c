@@ -4,13 +4,15 @@
 #include <stdlib.h>
 #include <libopencm3/stm32/can.h>
 
-static volatile CanardRxSubscription z_in_subscription;
-static volatile CanardRxSubscription z_pump_subscription;
-static volatile CanardRxSubscription z_flag_subscription;
-static volatile CanardRxSubscription z_valve_subscription;
-static volatile CanardRxSubscription z_arm_subscription;
-static volatile CanardRxSubscription z_angle_subscription;
-static volatile CanardRxSubscription z_pos_subscription;
+#include "lowlevel/uart.h"
+
+static CanardRxSubscription z_in_subscription;
+static CanardRxSubscription z_pump_subscription;
+static CanardRxSubscription z_flag_subscription;
+static CanardRxSubscription z_valve_subscription;
+static CanardRxSubscription z_arm_subscription;
+static CanardRxSubscription z_angle_subscription;
+static CanardRxSubscription z_pos_subscription;
 
 static volatile int z_out_transfer_id;
 static volatile int z_pump_transfer_id;
@@ -117,7 +119,7 @@ int canard_send_tx_queue(CanardInstance *pins)
     // Send the frame. Redundant interfaces may be used here.
 
     //trying to send, -1 is sending queue full
-    while(can_transmit(CAN1, txf->extended_can_id, 1, 0, txf->payload_size, txf->payload) == -1);
+    while(can_transmit(CAN1, txf->extended_can_id, 1, 0, txf->payload_size, (uint8_t*)txf->payload) == -1);
                                  // If the driver is busy, break and retry later.
     canardTxPop(pins);                         // Remove the frame from the queue after it's transmitted.
     pins->memory_free(pins, (CanardFrame*)txf);  // Deallocate the dynamic memory afterwards.
@@ -156,7 +158,7 @@ int decode_can_rx(global_data *pdata, CanardTransfer *ptransfer)
 {
   if( ptransfer->port_id == Z_TEXT_SET )
   {
-    for(int i=0; i<ptransfer->payload_size; i++)
+    for(size_t i=0; i<ptransfer->payload_size; i++)
     {
       char to_send[2];
       to_send[0] = ((char*)ptransfer->payload)[i];
@@ -305,7 +307,7 @@ int tx_feed_back(global_data *pdata)
   result = canardTxPush(&pdata->can_ins, &transfer);
   canard_send_tx_queue(&pdata->can_ins);
 
-
+  (void)result;
 
   return 1;
 }
