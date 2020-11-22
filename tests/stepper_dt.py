@@ -5,19 +5,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #parameters
-goal=10
+goal=-10
 v=-2
-x1=0.5#do not set to 0 or a division by 0 will occur
-x2=0.5
+T1=0.5#do not set to 0 or a division by 0 will occur
+T2=0.5
 
 #internal variables
 v=abs(v)
-if goal<0:
-    v*=-1
+goal=abs(goal)
 
-t3=goal/(v*(1-0.5*x1-0.5*x2))
-t1=x1*t3
-t2=t3*(1-x2)
+t3=goal/(v*(1-0.5*T1-0.5*T2))
+t1=T1*t3
+t2=t3*(1-T2)
 
 a1=v/t1
 a2=v/(t3-t2)

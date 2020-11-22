@@ -11,7 +11,7 @@
 #define STEPPER_NVIC_TIM_IRQ NVIC_TIM1_BRK_TIM15_IRQ
 #define STEPPER_RST_TIM RST_TIM15
 // change these 2 lines to setup interruption frequency
-// #define ODOM_TIM_PRESCALER ((rcc_apb1_frequency * 2) / 5000)
+// rcc_apb1_frequency
 #define STEPPER_TIM_PRESCALER 50
 #define STEPPER_TIM_PERIOD 150
 
